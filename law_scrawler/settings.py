@@ -52,14 +52,10 @@ USER_AGENT_LIST = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
     ]
 
-DOWNLOADER_MIDDLEWARES = {
-    'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 400,
-}
-
-class RandomUserAgentMiddleware:
-    def process_request(self, request, spider):
-        user_agent = random.choice(USER_AGENT_LIST)
-        request.headers['User-Agent'] = user_agent
+PROXY_LIST = ["direct"]
+# with open("law_scrawler/proxies.txt", 'r') as f:
+#     lines = [line.strip() for line in f.readlines()]
+#     PROXY_LIST += lines
 
 
 CONCURRENT_REQUESTS = 32
