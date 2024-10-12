@@ -1,0 +1,7 @@
+./xf/html/xf1.html
+./xf/html/xf2.html
+./xf/html/xf3.html
+./xf/html/xf4.html
+./xf/html/xf5.html
+./xf/html/xf6.html
+./xf/html/xf7.html
