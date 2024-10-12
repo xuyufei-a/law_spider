@@ -17,8 +17,8 @@ page_num = {"https://flk.npc.gov.cn/fl.html": 68, "https://flk.npc.gov.cn/xf.htm
 class MySpiderSpider(scrapy.Spider):
     name = "my_spider"
     allowed_domains = ["flk.npc.gov.cn"]
-    # start_urls = ["https://flk.npc.gov.cn/fl.html", "https://flk.npc.gov.cn/xf.html", "https://flk.npc.gov.cn/dfxfg.html"]
-    start_urls = ["https://flk.npc.gov.cn/dfxfg.html"]
+    start_urls = ["https://flk.npc.gov.cn/fl.html", "https://flk.npc.gov.cn/xf.html", "https://flk.npc.gov.cn/dfxfg.html"]
+    # start_urls = ["https://flk.npc.gov.cn/dfxfg.html"]
 
     def __init__(self):
         chrome_options = Options()

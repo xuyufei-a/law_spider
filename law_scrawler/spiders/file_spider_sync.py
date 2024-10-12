@@ -1,3 +1,4 @@
+import scrapy
 import asyncio
 from playwright.async_api import async_playwright
 import requests
@@ -5,10 +6,12 @@ import os
 from urllib.parse import urljoin
 import time
 
-class logger():
+CATE = "xf"
+
+class Logger():
     def __init__(self):
-        if(os.path.exists('result/logs/words_log.txt')):
-            os.remove('result/logs/words_log.txt')
+        if(os.path.exists(f'result/logs/{CATE}_words_log.txt')):
+            os.remove(f'result/logs/{CATE}_words_log.txt')
         if not (os.path.exists('result/logs')):
             os.mkdir('result/logs')
 
@@ -20,18 +23,22 @@ class logger():
         with open('result/logs/words_log.txt', 'a') as f:
             f.write(f"[ERROR]: {msg}\n")
 
-class spider():
+class FileSpiderSpider(scrapy.Spider):
     base_url = "https://flk.npc.gov.cn/{}.html"
+    name = "file_spider"
+    allowed_domains = ["flk.npc.gov.cn"]
     category = ["xf", "fl", "dfxfg"]
+    start_urls = []
 
     def __init__(self):
-        self.logger = logger()
-        
+        self.my_logger = Logger()
         self.urls = {}
         for c in self.category:
             with open(f"result/urls/{c}_urls.txt", 'r') as f:
                 lines = f.readlines()
             self.urls[c] = [urljoin(self.base_url.format(c), line.strip()) for line in lines]
+        self.start_urls = self.urls[CATE] 
+        self.semaphore = asyncio.Semaphore(10)
 
     async def download_file(self, url, catogery, semaphore):
         async with semaphore:
@@ -54,34 +61,16 @@ class spider():
                                 os.makedirs(f"result/words/{catogery}")
                             with open(os.path.join(f"result/words/{catogery}", download_filename), 'wb') as f:
                                 f.write(response.content)
-                            self.logger.log(f"downloaded {download_filename} from {url}")
+                            self.my_logger.log(f"downloaded {download_filename} from {url}")
                         else:
                             raise Exception("download url is empty")
                         await browser.close()
                     return
                 except Exception as e:
-                    self.logger.log(f"{i}-th failure to download {url}: {e}")
-                    time.sleep(5)
+                    self.my_logger.log(f"{i}-th failure to download {url}: {e}")
+                    await asyncio.sleep(5)
 
-            self.logger.error(f"failed to download {url}")
-    
-    async def download_files(self):
-        semaphore = asyncio.Semaphore(9)
+            self.my_logger.error(f"failed to download {url}")
 
-        tasks = []
-        for catogery, urls in self.urls.items():
-            self.logger.log(f"start to add {catogery} task")
-            for url in urls:
-                task = asyncio.create_task(self.download_file(url, catogery, semaphore))
-                tasks.append(task)
-            self.logger.log(f"finish adding {catogery} task")
-
-        return await asyncio.gather(*tasks)
-    
-    def run(self):
-        asyncio.run(self.download_files())
-
-
-if __name__ == '__main__':
-    s = spider()
-    s.run()
+    async def parse(self, response):
+        await self.download_file(response.url, CATE, self.semaphore)
