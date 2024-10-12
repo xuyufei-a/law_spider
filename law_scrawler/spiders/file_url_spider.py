@@ -44,6 +44,8 @@ class spider():
                     if download_url:
                         response = requests.get(download_url)
                         
+                        if not os.path.exists(f"result/words/{catogery}"):
+                            os.makedirs(f"result/words/{catogery}")
                         with open(os.path.join(f"result/words/{catogery}", download_filename), 'wb') as f:
                             f.write(response.content)
                         self.logger.log(f"downloaded {download_filename} from {url}")
@@ -58,9 +60,10 @@ class spider():
         asyncio.Semaphore(5)
 
         tasks = []
-        for catogery, url in self.urls.items():
-            task = asyncio.craate_url(self.download_file(url, catogery))
-            task.append(task)
+        for catogery, urls in self.urls.items():
+            for url in urls:
+                task = asyncio.create_task(self.download_file(url, catogery))
+                tasks.append(task)
 
         return await asyncio.gather(*tasks)
     
@@ -70,3 +73,4 @@ class spider():
 
 if __name__ == '__main__':
     s = spider()
+    s.run()
