@@ -9,13 +9,16 @@ import asyncio
 import aiohttp
 import aiofiles
 import random
+import pywifi
+from pywifi import const
+import subprocess
 
 class Logger():
     def __init__(self, category, remove_log):
         if remove_log and os.path.exists(f'result/logs/{category}_words_log.txt'):
             os.remove(f'result/logs/{category}_words_log.txt')
-        if not os.path.exists('result/logs'):
-            os.mkdir('result/logs')
+        os.makedirs('result/logs', exist_ok=True)
+        os.makedirs('result/file_urls', exist_ok=True)
         self.category = category
 
     def log(self, msg):
@@ -26,11 +29,43 @@ class Logger():
         with open(f'result/logs/{self.category}_words_log.txt', 'a') as f:
             f.write(f"[ERROR]: {msg}\n")
 
+    def save_url(self, url):
+        with open(f'result/file_urls/{self.category}_file_urls.txt', 'a') as f:
+            f.write(url + '\n')
+
 class FileSpiderSpider(scrapy.Spider):
     base_url = "https://flk.npc.gov.cn/{}.html"
     name = "file_spider"
     allowed_domains = ["flk.npc.gov.cn"]
     category = ["xf", "fl", "dfxfg"]
+
+    def _reset_network(self):
+        return
+        ssid = "wifi"
+        password = "qqxxyyff"
+        
+        wifi = pywifi.PyWiFi()
+        iface = wifi.interfaces()[0]
+        profile = pywifi.Profile()
+        profile.ssid = ssid
+        profile.auth = const.AUTH_ALG_OPEN
+        profile.akm.append(const.AKM_TYPE_WPA2PSK)
+        profile.cipher = const.CIPHER_TYPE_CCMP
+        profile.key = password
+
+        iface.remove_all_network_profiles()
+        tmp_profile = iface.add_network_profile(profile)
+        iface.connect(tmp_profile)  
+
+        time.sleep(3)
+        for i in range(10):
+            if iface.status() != const.IFACE_CONNECTED:
+                time.sleep(1)
+            else:
+                return
+        
+        self.my_logger.log("fail to reset wifi")
+
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -52,7 +87,7 @@ class FileSpiderSpider(scrapy.Spider):
         if resume and os.path.exists(f"result/logs/{category}_words_log.txt"):
             with open(f"result/logs/{category}_words_log.txt", 'r') as f:
                 context = f.read()
-            finished_urls = re.findall(r"^Downloaded .+? from (.+?)$", context, re.MULTILINE) 
+            finished_urls = re.findall(r"^[Dd]ownloaded .+? from (.+?)$", context, re.MULTILINE) 
 
             self.urls = [url for url in self.urls if url not in finished_urls]
 
@@ -82,10 +117,10 @@ class FileSpiderSpider(scrapy.Spider):
             proxy = random.choice(self.proxy)
 
         user_agent = random.choice(self.user_agent)
-        self.my_logger.log(f"use proxy: {proxy}")
-        self.my_logger.log(f"use user agent: {user_agent}")
+        # self.my_logger.log(f"use proxy: {proxy}")
+        # self.my_logger.log(f"use user agent: {user_agent}")
         if proxy != "direct":
-            options.add_argument(f'--proxy-server=direct')
+            options.add_argument(f'--proxy-server={proxy}')
         options.add_argument(f'--user-agent={user_agent}')
         options.add_argument('--ignore-certificate-errors')
         options.add_argument('--allow-insecure-localhost') 
@@ -102,9 +137,13 @@ class FileSpiderSpider(scrapy.Spider):
         driver = await self._get_driver(True) 
         driver.get(url)
         
-        for i in range(10):
+        for i in range(7):
+            if driver.current_url == "https://flk.npc.gov.cn/waf_text_verify.html":
+                self._reset_network()
+            
             try:
-                await asyncio.sleep(2) 
+                # await asyncio.sleep(random.randint(1, 2 ** i)) 
+                await asyncio.sleep(2 + i)
                 download_url = driver.execute_script("return getDownLoadUrl();")
                 if download_url:
                     download_filename = download_url.split('/')[-1]
@@ -120,9 +159,12 @@ class FileSpiderSpider(scrapy.Spider):
                             async with aiofiles.open(file_path, 'wb') as f:
                                 await f.write(content)
 
-                            self.my_logger.log(f"Downloaded {download_filename} from {url}")
                             self.remaining_urls -= 1
-                            self.my_logger.log(f"Remaining URLs: {self.remaining_urls}")
+                            self.my_logger.log(f"Downloaded {download_filename} from {url}\nRemaining URLs: {self.remaining_urls}")
+                            self.my_logger.save_url(download_url)
+
+                            if self.remaining_urls % 10 == 0:
+                                self._reset_network()
                         else:
                             raise Exception(f"Failed to download file, status code: {response.status}")
                     return
@@ -132,9 +174,8 @@ class FileSpiderSpider(scrapy.Spider):
             except Exception as e:
                 self.my_logger.log(f"{i}-th failure to download {url}: {e}")
                 driver.quit()
-                driver = await self._get_driver(False)
+                driver = await self._get_driver(True)
                 driver.get(url)
-                await asyncio.sleep(2)
 
         self.my_logger.error(f"Failed to download {url}")
         time.sleep(600)
