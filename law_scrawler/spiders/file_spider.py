@@ -99,7 +99,7 @@ class FileSpiderSpider(scrapy.Spider):
         for url in self.urls:
             yield scrapy.Request(url, callback=self.parse)
 
-    async def _get_driver(self, headless, use_dynamic_proxy=False):
+    async def _get_driver(self, headless=True, use_dynamic_proxy=False):
         options = webdriver.ChromeOptions()
 
         if use_dynamic_proxy:
@@ -134,7 +134,7 @@ class FileSpiderSpider(scrapy.Spider):
 
     async def download_file(self, url, category):
         self.my_logger.log(f"Downloading {url}")
-        driver = await self._get_driver(True) 
+        driver = await self._get_driver() 
         driver.get(url)
         
         for i in range(7):
@@ -155,9 +155,9 @@ class FileSpiderSpider(scrapy.Spider):
                             if not os.path.exists(f"result/words/{category}"):
                                 os.makedirs(f"result/words/{category}")
 
-                            file_path = os.path.join(f"result/words/{category}", download_filename)
-                            async with aiofiles.open(file_path, 'wb') as f:
-                                await f.write(content)
+                            # file_path = os.path.join(f"result/words/{category}", download_filename)
+                            # async with aiofiles.open(file_path, 'wb') as f:
+                            #     await f.write(content)
 
                             self.remaining_urls -= 1
                             self.my_logger.log(f"Downloaded {download_filename} from {url}\nRemaining URLs: {self.remaining_urls}")
@@ -174,7 +174,7 @@ class FileSpiderSpider(scrapy.Spider):
             except Exception as e:
                 self.my_logger.log(f"{i}-th failure to download {url}: {e}")
                 driver.quit()
-                driver = await self._get_driver(True)
+                driver = await self._get_driver()
                 driver.get(url)
 
         self.my_logger.error(f"Failed to download {url}")
