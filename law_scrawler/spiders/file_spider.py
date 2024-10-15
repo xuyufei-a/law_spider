@@ -12,6 +12,7 @@ import random
 import pywifi
 from pywifi import const
 import subprocess
+from docx import Document
 
 class Logger():
     def __init__(self, category, remove_log):
@@ -38,34 +39,6 @@ class FileSpiderSpider(scrapy.Spider):
     name = "file_spider"
     allowed_domains = ["flk.npc.gov.cn"]
     category = ["xf", "fl", "dfxfg"]
-
-    def _reset_network(self):
-        return
-        ssid = "wifi"
-        password = "qqxxyyff"
-        
-        wifi = pywifi.PyWiFi()
-        iface = wifi.interfaces()[0]
-        profile = pywifi.Profile()
-        profile.ssid = ssid
-        profile.auth = const.AUTH_ALG_OPEN
-        profile.akm.append(const.AKM_TYPE_WPA2PSK)
-        profile.cipher = const.CIPHER_TYPE_CCMP
-        profile.key = password
-
-        iface.remove_all_network_profiles()
-        tmp_profile = iface.add_network_profile(profile)
-        iface.connect(tmp_profile)  
-
-        time.sleep(3)
-        for i in range(10):
-            if iface.status() != const.IFACE_CONNECTED:
-                time.sleep(1)
-            else:
-                return
-        
-        self.my_logger.log("fail to reset wifi")
-
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -99,8 +72,13 @@ class FileSpiderSpider(scrapy.Spider):
         for url in self.urls:
             yield scrapy.Request(url, callback=self.parse)
 
-    async def _get_driver(self, headless=True, use_dynamic_proxy=False):
+    async def _get_driver(self, headless=True, use_dynamic_proxy=False, save_dir=None):
         options = webdriver.ChromeOptions()
+
+        # set download path
+        options.add_experimental_option("prefs", {
+           "download.default_directory": save_dir,
+        })
 
         if use_dynamic_proxy:
             proxy_pool_url = "https://269900.xyz/fetch_random?region=cn"
@@ -139,34 +117,26 @@ class FileSpiderSpider(scrapy.Spider):
         
         for i in range(7):
             if driver.current_url == "https://flk.npc.gov.cn/waf_text_verify.html":
-                self._reset_network()
-            
+                time.sleep(500)
+
             try:
-                # await asyncio.sleep(random.randint(1, 2 ** i)) 
-                await asyncio.sleep(2 + i)
+                await asyncio.sleep(random.randint(1, 2 ** i)) 
+
                 download_url = driver.execute_script("return getDownLoadUrl();")
                 if download_url:
                     download_filename = download_url.split('/')[-1]
+                    save_dir = f"result/words/{category}"
                     
-                    async with aiohttp.request('GET', download_url) as response:
-                        if response.status == 200:
-                            content = await response.read()
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
 
-                            if not os.path.exists(f"result/words/{category}"):
-                                os.makedirs(f"result/words/{category}")
-
-                            # file_path = os.path.join(f"result/words/{category}", download_filename)
-                            # async with aiofiles.open(file_path, 'wb') as f:
-                            #     await f.write(content)
-
-                            self.remaining_urls -= 1
-                            self.my_logger.log(f"Downloaded {download_filename} from {url}\nRemaining URLs: {self.remaining_urls}")
-                            self.my_logger.save_url(download_url)
-
-                            if self.remaining_urls % 10 == 0:
-                                self._reset_network()
-                        else:
-                            raise Exception(f"Failed to download file, status code: {response.status}")
+                    if await self.save_file(download_url, save_dir, download_filename):
+                        self.remaining_urls -= 1
+                        self.my_logger.log(f"Downloaded {download_filename} from {url}\nRemaining URLs: {self.remaining_urls}")
+                        self.my_logger.save_url(download_url)
+                    else:
+                        raise Exception(f"Failed to download file {download_filename} from {url}")
+                    
                     return
                 else:
                     raise Exception("Download URL is empty")
@@ -179,6 +149,23 @@ class FileSpiderSpider(scrapy.Spider):
 
         self.my_logger.error(f"Failed to download {url}")
         time.sleep(600)
+
+    def is_valid_word_file(self, file_path):
+        if not file_path.endswith('.docx'):
+            return True
+        try:
+            doc = Document(file_path)
+            return True
+        except Exception:
+            return False
+    
+    async def save_file(self, url, save_dir, filename):
+        return True
+        driver = await self._get_driver(False, False, save_dir=os.path.abspath(save_dir))
+        driver.get(url)
+        await asyncio.sleep(10)
+
+        return self.is_valid_word_file(os.path.join(save_dir, filename))
 
     async def parse(self, response):
         await self.download_file(response.url, self.category) 
