@@ -4,6 +4,13 @@ import re
 import json
 import os
 import argparse
+import ftfy
+
+def fix(string):
+    string = ftfy.fix_text(string)
+    string = re.sub(r'[\u200b\u200c\u200d\u2060\ufeff\u8203]', ' ', string)
+    
+    return string.strip()
 
 def number_to_chinese(num):
     if num >= 10 and num < 20:
@@ -53,14 +60,21 @@ def convert_docx_to_dataset(file_path, dataset_path):
         sys.stderr.write(f"Failed to open {file_path}\n")
         return 
 
+    for paragraph in doc.paragraphs:
+        paragraph.text = fix(paragraph.text) 
+
     i = 0
     for i in range(len(doc.paragraphs)):
         if doc.paragraphs[i].text:
-            title = ''.join(doc.paragraphs[i].text.strip().splitlines())
-            break
+            title = ''.join(doc.paragraphs[i].text.splitlines())
+
+            if title:
+                print(title)
+                return
+                break
     
-    if re.match(r'.+决定', title):
-        sys.stderr.write(f"Skip {file_path}: decision instead of law\n")
+    if title.endswith('决定') or title.endswith('解释'):
+        sys.stderr.write(f"Skip {file_path}: decision or explanation instead of law\n")
         return
 
     law_idx = 1
@@ -68,7 +82,7 @@ def convert_docx_to_dataset(file_path, dataset_path):
     current_law = None
     for i in range(i + 1, len(doc.paragraphs)):
         pattern = re.compile(f'第{number_to_chinese(law_idx)}条')
-        match = pattern.match(doc.paragraphs[i].text.strip())
+        match = pattern.match(doc.paragraphs[i].text)
 
         # print(pattern, doc.paragraphs[i].text.strip())
 
@@ -81,13 +95,13 @@ def convert_docx_to_dataset(file_path, dataset_path):
                 })
             start, end = match.span()
             
-            current_law = doc.paragraphs[i].text.strip()[start:end]
-            law_content = doc.paragraphs[i].text.strip()[end:].strip()      
+            current_law = doc.paragraphs[i].text[start:end]
+            law_content = doc.paragraphs[i].text[end:].strip()      
             # print(current_law + '#' + law_content + '#')
             law_idx += 1
         else:
             if doc.paragraphs[i].text and current_law:
-                law_content += doc.paragraphs[i].text
+                law_content += '\n' + doc.paragraphs[i].text
     
     if current_law:
         laws.append({
@@ -96,7 +110,7 @@ def convert_docx_to_dataset(file_path, dataset_path):
             'content': law_content
         })
     else:
-        sys.stderr.write(f"no law found in {file_path}\n")
+        sys.stderr.write(f"no law found in {file_path}, 《{title}》\n")
 
     with open(dataset_path, 'a', encoding='utf-8') as jsonl_file:
         for law in laws:
