@@ -1,6 +1,11 @@
 Downloading https://flk.npc.gov.cn/xf/html/xf1.html
-Downloading https://flk.npc.gov.cn/xf/html/xf2.html
-0-th failure to download https://flk.npc.gov.cn/xf/html/xf1.html: Message: javascript error: getDownLoadUrl is not defined
+Downloaded 2e446484eb9945b9bcdc2d204a7d35ac.docx from https://flk.npc.gov.cn/xf/html/xf1.html
+Remaining URLs: 6
+Downloading https://flk.npc.gov.cn/xf/html/xf3.html
+Downloading https://flk.npc.gov.cn/xf/html/xf4.html
+Downloaded 0193ce7784e64a83b575aadb5e0b8622.docx from https://flk.npc.gov.cn/xf/html/xf3.html
+Remaining URLs: 5
+0-th failure to download https://flk.npc.gov.cn/xf/html/xf4.html: Message: javascript error: getDownLoadUrl is not defined
   (Session info: headless chrome=109.0.5414.120)
 Stacktrace:
 Backtrace:
@@ -28,16 +33,73 @@ Backtrace:
 	RtlGetAppContainerNamedObjectPath [0x77C6809E+286]
 	RtlGetAppContainerNamedObjectPath [0x77C6806E+238]
 
-Downloading https://flk.npc.gov.cn/xf/html/xf5.html
-Downloading https://flk.npc.gov.cn/xf/html/xf4.html
-Downloading https://flk.npc.gov.cn/xf/html/xf3.html
+Downloading https://flk.npc.gov.cn/xf/html/xf2.html
+1-th failure to download https://flk.npc.gov.cn/xf/html/xf4.html: Message: javascript error: getDownLoadUrl is not defined
+  (Session info: headless chrome=109.0.5414.120)
+Stacktrace:
+Backtrace:
+	(No symbol) [0x00506643]
+	(No symbol) [0x0049BE21]
+	(No symbol) [0x0039DA9D]
+	(No symbol) [0x003A09E4]
+	(No symbol) [0x003A08AD]
+	(No symbol) [0x003A12E5]
+	(No symbol) [0x004079F7]
+	(No symbol) [0x003EFD7C]
+	(No symbol) [0x00406B09]
+	(No symbol) [0x003EFB76]
+	(No symbol) [0x003C49C1]
+	(No symbol) [0x003C5E5D]
+	GetHandleVerifier [0x0077A142+2497106]
+	GetHandleVerifier [0x007A85D3+2686691]
+	GetHandleVerifier [0x007ABB9C+2700460]
+	GetHandleVerifier [0x005B3B10+635936]
+	(No symbol) [0x004A4A1F]
+	(No symbol) [0x004AA418]
+	(No symbol) [0x004AA505]
+	(No symbol) [0x004B508B]
+	BaseThreadInitThunk [0x767EFCC9+25]
+	RtlGetAppContainerNamedObjectPath [0x77C6809E+286]
+	RtlGetAppContainerNamedObjectPath [0x77C6806E+238]
+
+Downloading https://flk.npc.gov.cn/xf/html/xf7.html
 Downloaded 9f314b7b2f2b4a66b63e8751da3fde8f.docx from https://flk.npc.gov.cn/xf/html/xf2.html
-Remaining URLs: 6
-Downloaded 2e446484eb9945b9bcdc2d204a7d35ac.docx from https://flk.npc.gov.cn/xf/html/xf1.html
-Remaining URLs: 5
-Downloaded fdcad53c93254f41b02ccc7b0f68564b.docx from https://flk.npc.gov.cn/xf/html/xf5.html
 Remaining URLs: 4
 Downloaded dcf90fd833be4e3bb3cc9eb1773fb07d.docx from https://flk.npc.gov.cn/xf/html/xf4.html
 Remaining URLs: 3
-Downloaded 0193ce7784e64a83b575aadb5e0b8622.docx from https://flk.npc.gov.cn/xf/html/xf3.html
+Downloaded dc91e9288c094a4aa6f96ec56bb4a4c8.docx from https://flk.npc.gov.cn/xf/html/xf7.html
 Remaining URLs: 2
+Downloading https://flk.npc.gov.cn/xf/html/xf5.html
+Downloading https://flk.npc.gov.cn/xf/html/xf6.html
+Downloaded fdcad53c93254f41b02ccc7b0f68564b.docx from https://flk.npc.gov.cn/xf/html/xf5.html
+Remaining URLs: 1
+0-th failure to download https://flk.npc.gov.cn/xf/html/xf6.html: Message: javascript error: getDownLoadUrl is not defined
+  (Session info: headless chrome=109.0.5414.120)
+Stacktrace:
+Backtrace:
+	(No symbol) [0x00506643]
+	(No symbol) [0x0049BE21]
+	(No symbol) [0x0039DA9D]
+	(No symbol) [0x003A09E4]
+	(No symbol) [0x003A08AD]
+	(No symbol) [0x003A12E5]
+	(No symbol) [0x004079F7]
+	(No symbol) [0x003EFD7C]
+	(No symbol) [0x00406B09]
+	(No symbol) [0x003EFB76]
+	(No symbol) [0x003C49C1]
+	(No symbol) [0x003C5E5D]
+	GetHandleVerifier [0x0077A142+2497106]
+	GetHandleVerifier [0x007A85D3+2686691]
+	GetHandleVerifier [0x007ABB9C+2700460]
+	GetHandleVerifier [0x005B3B10+635936]
+	(No symbol) [0x004A4A1F]
+	(No symbol) [0x004AA418]
+	(No symbol) [0x004AA505]
+	(No symbol) [0x004B508B]
+	BaseThreadInitThunk [0x767EFCC9+25]
+	RtlGetAppContainerNamedObjectPath [0x77C6809E+286]
+	RtlGetAppContainerNamedObjectPath [0x77C6806E+238]
+
+Downloaded 8703c7d947654b9a81e2345bd70eb3da.docx from https://flk.npc.gov.cn/xf/html/xf6.html
+Remaining URLs: 0

@@ -42,11 +42,12 @@ class FileSpiderSpider(scrapy.Spider):
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
-        return cls(user_agent=crawler.settings.get('USER_AGENT_LIST'), proxy=crawler.settings.get('PROXY_LIST'), *args, **kwargs)
+        return cls(user_agent=crawler.settings.get('USER_AGENT_LIST'), proxy=crawler.settings.get('PROXY_LIST'), crawler=crawler, *args, **kwargs)
 
-    def __init__(self, user_agent, proxy, category, resume: bool):
-        super(FileSpiderSpider, self).__init__()
+    def __init__(self, user_agent, proxy, crawler, category, resume: bool, *args, **kwargs):
+        super(FileSpiderSpider, self).__init__(*args, **kwargs)
 
+        self.crawler = crawler
         self.user_agent = user_agent
         self.proxy = proxy
         resume = resume == 'True'
@@ -160,8 +161,7 @@ class FileSpiderSpider(scrapy.Spider):
             return False
     
     async def save_file(self, url, save_dir, filename):
-        return True
-        driver = await self._get_driver(False, False, save_dir=os.path.abspath(save_dir))
+        driver = await self._get_driver(True, False, save_dir=os.path.abspath(save_dir))
         driver.get(url)
         await asyncio.sleep(10)
 
